@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.Trusted.Signing.Client.1.0.76\build\Microsoft.Trusted.Signing.Client.props" Condition="Exists('..\packages\Microsoft.Trusted.Signing.Client.1.0.76\build\Microsoft.Trusted.Signing.Client.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM64">
       <Configuration>Debug</Configuration>
@@ -100,7 +101,7 @@
     <PostBuildEvent>
       <Message>Apply VEIID Protection</Message>
       <Command>$(VEIID_Command)
-signtool sign /ph /fd SHA256 /n "MyTestEnclaveCert" $(TargetPath)</Command>
+signtool sign /v /debug /ph /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib $(SolutionDir)packages\Microsoft.Trusted.Signing.Client.1.0.76\bin\x64\Azure.CodeSigning.Dlib.dll /dmdf $(SolutionDir)packages\Microsoft.Trusted.Signing.Client.1.0.76\kmxTrustSigningMetadata.json $(TargetPath)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
@@ -137,9 +138,18 @@ signtool sign /ph /fd SHA256 /n "MyTestEnclaveCert" $(TargetPath)</Command>
     <ClInclude Include="precomp.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="vbsenclave.def" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\Microsoft.Trusted.Signing.Client.1.0.76\build\Microsoft.Trusted.Signing.Client.targets" Condition="Exists('..\packages\Microsoft.Trusted.Signing.Client.1.0.76\build\Microsoft.Trusted.Signing.Client.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>이 프로젝트는 이 컴퓨터에 없는 NuGet 패키지를 참조합니다. 해당 패키지를 다운로드하려면 NuGet 패키지 복원을 사용하십시오. 자세한 내용은 http://go.microsoft.com/fwlink/?LinkID=322105를 참조하십시오. 누락된 파일은 {0}입니다.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.Trusted.Signing.Client.1.0.76\build\Microsoft.Trusted.Signing.Client.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Trusted.Signing.Client.1.0.76\build\Microsoft.Trusted.Signing.Client.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Trusted.Signing.Client.1.0.76\build\Microsoft.Trusted.Signing.Client.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Trusted.Signing.Client.1.0.76\build\Microsoft.Trusted.Signing.Client.targets'))" />
+  </Target>
 </Project>

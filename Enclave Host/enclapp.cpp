@@ -94,7 +94,12 @@ HRESULT Run()
     if ((reinterpret_cast<ULONG_PTR>(Output) ^ Input) != 0xDADAF00D)
     {
         printf("Unexpected result from enclave\n");
-    }        
+    }
+    else {
+        printf("The Input = %lld\n", Input);
+		printf("The Output = %lld\n", reinterpret_cast<ULONG_PTR>(Output));
+        printf("The Test is successfully End!!\n");
+    }
 
     // Destructor of "cleanup" variable will terminate and delete the enclave.
 
