@@ -9,9 +9,35 @@
 //
 //*********************************************************
 
+//Enclave Host header file
+
 #pragma once
+
+#define STR_SIZE 1024
+#define BUFFER_SIZE 32'768
 
 #include <windows.h>
 #include <stdio.h>
 #include <wil/resource.h>
 #include <wil/result_macros.h>
+#include <string>
+
+typedef struct {
+    HRESULT hr;
+    BYTE Report[BUFFER_SIZE];
+    UINT32 ReportSize;
+}ReportDataInfo;
+
+typedef struct {
+    char msg[STR_SIZE];
+    int msg_size;
+    HRESULT hr;
+    PVOID protectedBlob;
+    int protectedBolbSize;
+}MessageDataInfo;
+
+typedef struct {
+    HRESULT hr;
+    PVOID protectedBlob;
+    int protectedBolbSize;
+}ProtectedBolbInfo;

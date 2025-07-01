@@ -9,7 +9,34 @@
 //
 //*********************************************************
 
+//Test Enclave header file
+
 #pragma once
+
+#define STR_SIZE 1024
+#define BUFFER_SIZE 32'768
 
 #include <winenclave.h>
 #include <wchar.h>
+#include<malloc.h>
+#include <bcrypt.h>
+
+typedef struct {
+    HRESULT hr;
+    BYTE Report[BUFFER_SIZE];
+    UINT32 ReportSize;
+}ReportDataInfo;
+
+typedef struct {
+    char msg[STR_SIZE];
+    int msg_size;
+    HRESULT hr;
+    PVOID protectedBlob;
+    int protectedBolbSize;
+}MessageDataInfo;
+
+typedef struct {
+    HRESULT hr;
+    PVOID protectedBlob;
+    int protectedBolbSize;
+}ProtectedBolbInfo;
