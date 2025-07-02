@@ -118,49 +118,71 @@ CallEncryptionTest(
 void*
 CALLBACK
 CallEnclaveSealData(
-    _In_ void* data
+    _In_ void* msgData
 )
 {
-    MessageDataInfo* msgData = (MessageDataInfo*)data;
-    
+	strcat_s(((MessageDataInfo*)msgData)->log, LOG_SIZE, "CallEnclaveSealData started.\n");
+
     pbInfo = (ProtectedBolbInfo*)malloc(sizeof(ProtectedBolbInfo));
     // Check if memory allocation for pbInfo was successful  
     if (pbInfo == NULL) {
-        OutputDebugStringW(L"Memory allocation for pbInfo failed.\n");
-        return NULL;
+        ((MessageDataInfo*)msgData)->hr = E_OUTOFMEMORY; // Set error code in msgData
+        strcat_s(((MessageDataInfo*)msgData)->log, LOG_SIZE, "Memory allocation for pbInfo failed.\n");
+        return E_FAIL;
     }
     else {
 		memset(pbInfo, 0, sizeof(ProtectedBolbInfo)); // Initialize pbInfo to zero
     }
     
     size_t actualBolbSize = 256;
-    pbInfo->protectedBlob = malloc(actualBolbSize);
-    if (pbInfo->protectedBolbSize == NULL) {
-        OutputDebugStringW(L"Memory allocation for protectedBolb failed.\n");
+    pbInfo->protectedBlob = (char*)malloc(actualBolbSize);
+    if (pbInfo->protectedBlob == NULL) {
+        ((MessageDataInfo*)msgData)->hr = E_OUTOFMEMORY; // Set error code in msgData
+        strcat_s(((MessageDataInfo*)msgData)->log, LOG_SIZE, "Memory allocation for protectedBolb failed.\n");
         free(pbInfo);
-        return NULL;
+        return E_FAIL;
     }
-    memset(pbInfo->protectedBlob, 0, actualBolbSize);
+	pbInfo->protectedBlob[0] = '\0'; // Initialize protectedBlob to an empty string
 
     // Create a protected blob info structure to hold the sealed data.  
     pbInfo->hr = EnclaveSealData(
-        msgData->msg,           // DataToEncrypt  
-        msgData->msg_size,      // DataToEncryptSize  
-        ENCLAVE_IDENTITY_POLICY_SEAL_SAME_IMAGE,        // IdentityPolicy  
+        ((MessageDataInfo*)msgData)->msg,               // DataToEncrypt  
+        ((MessageDataInfo*)msgData)->msg_size,          // DataToEncryptSize  
+        ENCLAVE_IDENTITY_POLICY_SEAL_SAME_AUTHOR,        // IdentityPolicy  
         ENCLAVE_RUNTIME_POLICY_ALLOW_FULL_DEBUG,        // RuntimePolicy  
-        pbInfo->protectedBlob,                          // ProtectedBlob  
+        (PVOID)pbInfo->protectedBlob,                   // ProtectedBlob  
         BUFFER_SIZE,                                    // BufferSize  
-        pbInfo->protectedBolbSize                       // *ProtectedBlobSize  
+        &(pbInfo->protectedBlobSize)                       // *ProtectedBlobSize  
     );
 
-    // Return the result
-    if (pbInfo->hr == S_OK) {
-        return (void*)pbInfo->hr;
-        //return (void*)pbInfo;
+    //log
+    strcat_s(((MessageDataInfo*)msgData)->log, LOG_SIZE, "CallEnclaveSealData finished.\n");
+    // Convert the protectedBlob to a string and append it to the log
+    strcat_s(((MessageDataInfo*)msgData)->log, LOG_SIZE, "pbInfo->protectedBlob: ");
+    char* blobAddr = (char*)pbInfo->protectedBlob;
+    strcat_s(((MessageDataInfo*)msgData)->log, LOG_SIZE, (blobAddr ? blobAddr : "NULL"));
+	strcat_s(((MessageDataInfo*)msgData)->log, LOG_SIZE, "\n");
+
+    // Convert the protectedBlobSize to a string and append it to the log
+    strcat_s(((MessageDataInfo*)msgData)->log, LOG_SIZE, "pbInfo->protectedBolbSize: ");
+    char bolbSize[10];       // 변환한 문자열을 저장할 배열
+    sprintf_s(bolbSize, 10, "%d", pbInfo->protectedBlobSize);    // %d를 지정하여 정수를 문자열로 저장
+	strcat_s(((MessageDataInfo*)msgData)->log, LOG_SIZE, bolbSize); 
+    strcat_s(((MessageDataInfo*)msgData)->log, LOG_SIZE, "\n");
+
+    //test - put the protectedBolb values
+    //((MessageDataInfo*)msgData)->protectedBlob = pbInfo->protectedBlob;
+    // Ensure pbInfo->protectedBlob is not NULL before calling strcpy_s  
+    if (pbInfo->protectedBlob != NULL) {
+        strcpy_s(((MessageDataInfo*)msgData)->protectedBlob, sizeof(((MessageDataInfo*)msgData)->protectedBlob), pbInfo->protectedBlob);
     }
     else {
-        return (void*)pbInfo->hr;
+        strcat_s(((MessageDataInfo*)msgData)->log, LOG_SIZE, "pbInfo->protectedBlob is NULL, skipping strcpy_s.\n");
     }
+    ((MessageDataInfo*)msgData)->protectedBlobSize = pbInfo->protectedBlobSize;
+
+    // Return the result
+    return (void*)pbInfo->hr;
 }
 
 void*
@@ -169,16 +191,56 @@ CallEnclaveUnsealData(
     _In_ void* decryptedMsgData
 ) 
 {
-	//MessageDataInfo decryptedMsgData;
+    ENCLAVE_IDENTITY sealingIdentity;
+    UINT32 unsealingFlags = 0;
+
+	//MessageDataInfo* tempData = (MessageDataInfo*)malloc(sizeof(MessageDataInfo));
+    //// Check if memory allocation for pbInfo was successful  
+    //if (tempData == NULL) {
+    //    OutputDebugStringW(L"Memory allocation for pbInfo failed.\n");
+    //    return E_FAIL;
+    //}
+    //else {
+    //    memset(tempData, 0, sizeof(MessageDataInfo)); // Initialize tempData to zero
+    //}
+	//strcpy_s(tempData->msg, STR_SIZE, "nothing_vbsSide");
+	//tempData->msg_size = strlen(tempData->msg);
+	//tempData->log[0] = '\0'; // Initialize log to an empty string
+
+    //log - check input
+	strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "CallEnclaveUnsealData started.\n");
+    strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "initial message: ");
+	strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, ((MessageDataInfo*)decryptedMsgData)->msg);
+	strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "\n");
+
+    //check if pbInfo->protectedBlob is NULL
+    if (pbInfo->protectedBlob == NULL) {
+        strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "pbInfo->protectedBlob is NULL.\n");
+    }
+
 	HRESULT hr = EnclaveUnsealData(
 		pbInfo->protectedBlob,          // ProtectedBlob  
-		pbInfo->protectedBolbSize,      // ProtectedBlobSize  
-        (PVOID)((MessageDataInfo*)decryptedMsgData)->msg,           // DecryptedData
+		pbInfo->protectedBlobSize,      // ProtectedBlobSize  
+        ((MessageDataInfo*)decryptedMsgData)->msg,           // DecryptedData
 		BUFFER_SIZE,                    // BufferSize  
         &(((MessageDataInfo*)decryptedMsgData)->msg_size),      // *DecryptedDataSize  
-		NULL,                           // *SealingIdentity
-        NULL                            // *UnsealingFlags
+		&sealingIdentity,            // *SealingIdentity
+        &unsealingFlags              // *UnsealingFlags
 	);
+
+    //log - check decrypted result
+	strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "CallEnclaveUnsealData finished.\n");
+	strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "Decrypted message: ");
+	strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, ((MessageDataInfo*)decryptedMsgData)->msg);
+	strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "\n");
+
+    ////copy
+	//strcpy_s(((MessageDataInfo*)decryptedMsgData)->msg, STR_SIZE, tempData->msg);
+	//((MessageDataInfo*)decryptedMsgData)->msg_size = tempData->msg_size;
+    //strcpy_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, tempData->log);
+
+    ////free
+    //free(tempData);
 
     return (void*)hr;
 }

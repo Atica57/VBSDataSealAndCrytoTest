@@ -181,6 +181,9 @@ HRESULT DataSealAndUnsealTest() {
     MessageDataInfo msgDataInfo;
     strcpy_s(msgDataInfo.msg, STR_SIZE, "This is VBS Host Enclave side message.");
     msgDataInfo.msg_size = strlen(msgDataInfo.msg);
+    strcpy_s(msgDataInfo.log, LOG_SIZE, "- Log start - \n");
+	// Initialize the protectedBlob to NULL and protectedBlobSize to 0
+	msgDataInfo.protectedBlob = (char*)malloc(BUFFER_SIZE);
     void* Output;
 
     RETURN_IF_WIN32_BOOL_FALSE(CallEnclave(Routine, reinterpret_cast<void*>(&msgDataInfo), TRUE /* fWaitForThread */, &Output));
@@ -198,6 +201,7 @@ HRESULT DataSealAndUnsealTest() {
         printf("HRESULT: 0x%08X\n", sealHr);
         printf("The EnclaveSealData function is successfully End!!\n");
     }
+    printf("<log>\n%s\n", msgDataInfo.log);
 
     if (errorOccurred)
     {
@@ -217,6 +221,7 @@ HRESULT DataSealAndUnsealTest() {
     MessageDataInfo decryptedDataInfo;
     strcpy_s(decryptedDataInfo.msg, STR_SIZE, "nothing");
     decryptedDataInfo.msg_size = strlen(decryptedDataInfo.msg);
+    strcpy_s(decryptedDataInfo.log, LOG_SIZE, "- Log start - \n");
     //void* Output;
 
     RETURN_IF_WIN32_BOOL_FALSE(CallEnclave(Routine, reinterpret_cast<void*>(&decryptedDataInfo), TRUE /* fWaitForThread */, &Output));
@@ -240,6 +245,7 @@ HRESULT DataSealAndUnsealTest() {
             printf("Decrypted string is match with origin message!!!\n");
         }
     }
+    printf("<log>\n%s\n", decryptedDataInfo.log);
 
     // Destructor of "cleanup" variable will terminate and delete the enclave.
 

@@ -15,6 +15,7 @@
 
 #define STR_SIZE 1024
 #define BUFFER_SIZE 32'768
+#define LOG_SIZE 100'000
 
 #include <windows.h>
 #include <stdio.h>
@@ -32,12 +33,13 @@ typedef struct {
     char msg[STR_SIZE];
     int msg_size;
     HRESULT hr;
-    PVOID protectedBlob;
-    int protectedBolbSize;
+    char* protectedBlob;
+    int protectedBlobSize;
+	char log[LOG_SIZE];
 }MessageDataInfo;
 
 typedef struct {
     HRESULT hr;
     PVOID protectedBlob;
-    int protectedBolbSize;
+    int protectedBlobSize;
 }ProtectedBolbInfo;

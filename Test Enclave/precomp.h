@@ -15,10 +15,13 @@
 
 #define STR_SIZE 1024
 #define BUFFER_SIZE 32'768
+#define LOG_SIZE 100'000
 
 #include <winenclave.h>
+#include <stdio.h>
+#include <string.h>
 #include <wchar.h>
-#include<malloc.h>
+#include <malloc.h>
 #include <bcrypt.h>
 
 typedef struct {
@@ -31,12 +34,13 @@ typedef struct {
     char msg[STR_SIZE];
     int msg_size;
     HRESULT hr;
-    PVOID protectedBlob;
-    int protectedBolbSize;
+    char* protectedBlob;
+    int protectedBlobSize;
+    char log[LOG_SIZE];
 }MessageDataInfo;
 
 typedef struct {
     HRESULT hr;
-    PVOID protectedBlob;
-    int protectedBolbSize;
+    char* protectedBlob;
+    int protectedBlobSize;
 }ProtectedBolbInfo;
