@@ -212,12 +212,17 @@ CallEnclaveUnsealData(
     strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "initial message: ");
 	strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, ((MessageDataInfo*)decryptedMsgData)->msg);
 	strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "\n");
-
+    
     //check if pbInfo->protectedBlob is NULL
     if (pbInfo->protectedBlob == NULL) {
         strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "pbInfo->protectedBlob is NULL.\n");
     }
-
+    else {
+        strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "protectedBlob: ");
+        strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, pbInfo->protectedBlob);
+        strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "|end\n");
+    }
+    /*
 	HRESULT hr = EnclaveUnsealData(
 		pbInfo->protectedBlob,          // ProtectedBlob  
 		pbInfo->protectedBlobSize,      // ProtectedBlobSize  
@@ -227,7 +232,7 @@ CallEnclaveUnsealData(
 		&sealingIdentity,            // *SealingIdentity
         &unsealingFlags              // *UnsealingFlags
 	);
-
+    */
     //log - check decrypted result
 	strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "CallEnclaveUnsealData finished.\n");
 	strcat_s(((MessageDataInfo*)decryptedMsgData)->log, LOG_SIZE, "Decrypted message: ");
@@ -242,5 +247,6 @@ CallEnclaveUnsealData(
     ////free
     //free(tempData);
 
-    return (void*)hr;
+    //return (void*)hr;
+    return (void*)(E_FAIL);
 }
